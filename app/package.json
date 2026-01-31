@@ -1,0 +1,45 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "ts-node-dev src/server.ts",
+    "dev:all": "concurrently \"npm:dev\" \"npm:consumer:ingest\" \"npm:consumer:created\" \"npm:worker:notification\" --names \"SERVER,INGEST,CREATED,WORKER\" --prefix-colors \"blue,magenta,cyan,yellow\"",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "start:consumer:ingest": "node dist/consumers/task.ingest.consumer.js",
+    "start:consumer:created": "node dist/consumers/task.created.consumer.js",
+    "start:worker:notification": "node dist/workers/task.notification.worker.js",
+    "consumer:ingest": "ts-node-dev src/consumers/task.ingest.consumer.ts",
+    "consumer:created": "ts-node-dev src/consumers/task.created.consumer.ts",
+    "worker:notification": "ts-node-dev src/workers/task.notification.worker.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
+    "amqplib": "^0.10.9",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "ioredis": "^5.9.2",
+    "jsonwebtoken": "^9.0.3",
+    "kafkajs": "^2.2.4",
+    "pg": "^8.17.2"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.8",
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.1.0",
+    "@types/pg": "^8.16.0",
+    "concurrently": "^9.2.1",
+    "prisma": "^7.3.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.3"
+  }
+}
