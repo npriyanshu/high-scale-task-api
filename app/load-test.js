@@ -13,7 +13,7 @@ const instance = autocannon(
     duration: 10,         // 10 second test
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJwaW5jaHVAZ21haWwuY29tIiwiaWF0IjoxNzY5ODg4MzcxLCJleHAiOjE3Njk4OTE5NzF9.qgs9HCUUI0HH_O8Kio-2DfYtD2Wxx-mncyxUOM3ZaEw'
+      'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiZW1haWwiOiJsb2FkdGVzdDE3Njk5NTY4OTE3ODlAZXhhbXBsZS5jb20iLCJpYXQiOjE3Njk5NTY4OTIsImV4cCI6MTc2OTk2MDQ5Mn0.Nwbhkl-29XGAWGc9uI7E6eG634cdTeAcHgTenAebc6M'
     },
     body: JSON.stringify({
       title: 'load-test-task',

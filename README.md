@@ -27,10 +27,12 @@ demo-big-proj/
 │   │   ├── workers/         # Background workers (RabbitMQ)
 │   │   ├── kafka.ts         # Kafka configuration
 │   │   └── server.ts        # Application entry point
+│   ├── get-token.js         # Script to get fresh JWT token
 │   ├── load-test.js         # Autocannon load testing script
 │   ├── package.json         # Dependencies
 │   └── prisma/              # Database schema and migrations
-└── docker-compose.yml       # Infrastructure (Redis, Kafka, Postgres, RabbitMQ)
+├── docker-compose.yml       # Full Stack (App + Infra)
+└── docker-compose-old.yml   # Infrastructure Only (Redis, Kafka, Postgres, RabbitMQ)
 ```
 
 ## 🛠️ Prerequisites
@@ -43,31 +45,37 @@ demo-big-proj/
 
 ### 1. Choose Your Run Mode
 
-**Option A: Local Development (Recommended)**
-Run infrastructure in Docker, but run the application code locally for hot-reloading and easy debugging.
+### 1. Choose Your Run Mode
 
-1. Start only the infrastructure services (Database, Brokers):
+**Option A: Local Development (Recommended)**
+Use this mode when you want to write code and see changes immediately. You run the infrastructure in Docker, but the Node.js application runs directly on your machine.
+
+1. **Start Infrastructure Only** (using `docker-compose-old.yml`):
    ```bash
-   docker-compose up -d postgres redis kafka rabbitmq
+   docker-compose -f docker-compose-old.yml up -d
    ```
-2. Install dependencies:
+   *This commands starts Postgres, Redis, Kafka, and RabbitMQ without the application containers.*
+
+2. **Install dependencies**:
    ```bash
    cd app
    npm install
    ```
-3. Run the application stack:
+
+3. **Run the application stack**:
    ```bash
    npm run dev:all
    ```
    *This starts the API Server, Kafka Consumers, and RabbitMQ Worker in one terminal.*
 
 **Option B: Full Docker Mode**
-Run the entire system (including the app and workers) inside Docker containers.
+Use this mode to simulate a production environment. The entire system (application + infrastructure) runs inside Docker containers.
 
-1. Build and start all services:
+1. **Start Full Stack** (using `docker-compose.yml`):
    ```bash
    docker-compose up -d --build
    ```
+   *This builds the app image and starts all services including consumers and workers.*
    *The API will be available at http://localhost:3000*
 
 ### 2. Environment Configuration
@@ -89,6 +97,12 @@ Run the Prisma migrations to create the database schema.
 npx prisma migrate dev
 ```
 
+### 4. View Database
+You can visualize and edit your data using Prisma Studio:
+```bash
+npx prisma studio
+```
+
 
 ## 🧪 Testing
 
@@ -100,7 +114,23 @@ A load testing script is included to test the performance of the task creation e
    ```bash
    node load-test.js
    ```
-   *Note: You may need to verify or update the JWT token in `load-test.js` if authentication is required.*
+   ```bash
+   node load-test.js
+   ```
+
+3. **Authentication Token**:
+   The `load-test.js` script uses a JWT token for authentication. If you encounter `401 Unauthorized` errors, it means the token has expired.
+   
+   To generate a fresh token:
+   ```bash
+   node get-token.js
+   ```
+   This script will:
+   1. Register a new test user.
+   2. Login to get a fresh JWT.
+   3. Save the token to `token.txt`.
+   
+   *After running this, manually update the `Authorization` header in `load-test.js` with the new token from `token.txt`.*
 
 ## 📚 API Endpoints
 
