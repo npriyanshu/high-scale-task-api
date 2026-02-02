@@ -3,7 +3,7 @@ import express from "express";
 import taskRoutes from "./modules/task/task.routes";
 import healthRoutes from "./routes/health";
 
-import { kafkaProducer } from "./kafka";
+import { kafkaProducer, initKafka } from "./kafka";
 import { shutdown } from "./utils/shutdown";
 import { Server } from "http";
 import { prisma } from "./prisma";
@@ -50,6 +50,7 @@ app.use("/auth", authRoutes);
 
 
 async function start() {
+  await initKafka();
   await kafkaProducer.connect();
   console.log("Kafka Producer connected");
   server = app.listen(3000, () => {
