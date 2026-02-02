@@ -1,16 +1,16 @@
-# Enterprise Task Management System
+# High-Scale Task Management System
 
-A robust, scalable backend system for managing tasks, built with Modern Node.js technologies and an Event-Driven Architecture.
+A robust, scalable backend system for managing tasks, designed to handle high concurrency and throughput using an Event-Driven Architecture.
 
 ## 🚀 Tech Stack
 
-- **Runtime:** Node.js
+- **Runtime:** Node.js v20
 - **Language:** TypeScript
 - **Framework:** Express.js
 - **Database:** PostgreSQL (via Prisma ORM)
 - **Message Queues:**
-  - **Kafka:** Stream processing and ingestion consumers
-  - **RabbitMQ:** Task notification workers
+  - **Kafka:** High-throughput stream processing (Ingestion -> Processing)
+  - **RabbitMQ:** Reliable background task processing (Notifications)
 - **Caching & Rate Limiting:** Redis
 - **Containerization:** Docker & Docker Compose
 
@@ -20,133 +20,142 @@ A robust, scalable backend system for managing tasks, built with Modern Node.js 
 demo-big-proj/
 ├── app/
 │   ├── src/
-│   │   ├── consumers/       # Kafka consumers
+│   │   ├── consumers/       # Kafka consumers (Ingest, Created)
 │   │   ├── middlewares/     # Express middlewares (Auth, RateLimiter)
 │   │   ├── modules/         # Feature modules (Auth, Task)
 │   │   ├── routes/          # Health/System routes
 │   │   ├── workers/         # Background workers (RabbitMQ)
-│   │   ├── kafka.ts         # Kafka configuration
+│   │   ├── kafka.ts         # Kafka configuration & Admin init
 │   │   └── server.ts        # Application entry point
-│   ├── get-token.js         # Script to get fresh JWT token
-│   ├── load-test.js         # Autocannon load testing script
+│   ├── get-token.js         # Helper: Get fresh JWT token
+│   ├── load-test.js         # Helper: High-concurrency load test
 │   ├── package.json         # Dependencies
-│   └── prisma/              # Database schema and migrations
-├── docker-compose.yml       # Full Stack (App + Infra)
+│   └── prisma/              # Database schema
+├── docker-compose.yml       # Production-ready Full Stack (App + Infra)
 └── docker-compose-old.yml   # Infrastructure Only (Redis, Kafka, Postgres, RabbitMQ)
 ```
 
 ## 🛠️ Prerequisites
 
-- [Node.js](https://nodejs.org/) (v16+)
+- [Node.js](https://nodejs.org/) (v18+)
 - [Docker](https://www.docker.com/) & Docker Compose
 - [npm](https://www.npmjs.com/)
 
-## 🏃‍♂️ Getting Started
+---
 
-### 1. Choose Your Run Mode
+## 🏃‍♂️ How to Run
 
-### 1. Choose Your Run Mode
+You have two ways to run this project: **Full Docker Mode** (easiest) or **Local Development Mode** (best for coding).
 
-**Option A: Local Development (Recommended)**
-Use this mode when you want to write code and see changes immediately. You run the infrastructure in Docker, but the Node.js application runs directly on your machine.
+### Option A: Full Docker Mode (Recommended)
+Runs the entire system (API, Consumers, Workers, Database, Queues) inside Docker containers. **Everything is automated**, including database schema creation and Kafka topic initialization.
 
-1. **Start Infrastructure Only** (using `docker-compose-old.yml`):
-   ```bash
-   docker-compose -f docker-compose-old.yml up -d
-   ```
-   *This commands starts Postgres, Redis, Kafka, and RabbitMQ without the application containers.*
-
-2. **Install dependencies**:
-   ```bash
-   cd app
-   npm install
-   ```
-
-3. **Run the application stack**:
-   ```bash
-   npm run dev:all
-   ```
-   *This starts the API Server, Kafka Consumers, and RabbitMQ Worker in one terminal.*
-
-**Option B: Full Docker Mode**
-Use this mode to simulate a production environment. The entire system (application + infrastructure) runs inside Docker containers.
-
-1. **Start Full Stack** (using `docker-compose.yml`):
+1. **Start the System**:
    ```bash
    docker-compose up -d --build
    ```
-   *This builds the app image and starts all services including consumers and workers.*
-   *The API will be available at http://localhost:3000*
+   *This command:*
+   *   Starts Postgres, Redis, Kafka, and RabbitMQ.
+   *   Builds the Node.js application images.
+   *   **Automatically runs `npx prisma db push`** to sync the database schema.
+   *   **Automatically initializes Kafka topics** (`task.ingested`, `task.created`) on startup.
+   *   Starts the API Server, Ingest Consumer, Created Consumer, and Notification Worker.
 
-### 2. Environment Configuration
-Ensure your environment variables are set up.
-*(Note: Create a `.env` file in the `app` directory based on your configuration)*
+2. **Access the API**:
+   The API is available at: `http://localhost:3000`
 
-Example `.env` (for Local Development):
-```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5434/demo_task_db?schema=public"
-REDIS_URL="redis://localhost:6379"
-KAFKA_BROKERS="localhost:9092"
-RABBITMQ_URL="amqp://guest:guest@localhost:5672"
-```
+3. **Stop**:
+   ```bash
+   docker-compose down
+   ```
 
-### 3. Database Setup
-Run the Prisma migrations to create the database schema.
+### Option B: Local Development Mode
+Runs the infrastructure (DB, Queues) in Docker, but runs the Node.js application code directly on your machine for hot-reloading.
 
-```bash
-npx prisma migrate dev
-```
+1. **Start Infrastructure**:
+   ```bash
+   docker-compose -f docker-compose-old.yml up -d
+   ```
 
-### 4. View Database
-You can visualize and edit your data using Prisma Studio:
+2. **Setup Environment Variables**:
+   Create a `.env` file in the `app` directory:
+   ```bash
+   cd app
+   cp .env.example .env  # Or create one manually
+   ```
+   **Required `.env` content for local dev:**
+   ```env
+   DATABASE_URL="postgresql://postgres:postgres@localhost:5434/demo_task_db?schema=public"
+   REDIS_URL="redis://localhost:6379"
+   KAFKA_BROKERS="localhost:9092"
+   RABBITMQ_URL="amqp://guest:guest@localhost:5672"
+   JWT_SECRET="your_super_secret_key"
+   ```
+
+   npm install
+   ```
+
+4. **Generate and Sync Database Schema**:
+   Since the app is running locally, you must manually push the schema to the Dockerized Postgres:
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   
+
+5. **Run the Application**:
+   ```bash
+   npm run dev:all
+   ```
+   *This uses `concurrently` to run the API Server, Kafka Consumers, and RabbitMQ Worker in a single terminal window with colorful logs.*
+
+---
+
+## 🧪 Testing & Validation
+
+### 1. Load Testing
+We include a script to simulate high traffic and validation of the event-driven pipelines.
+
+1. **Generate Auth Token**:
+   The system is secured. You need a JWT to modify tasks.
+   ```bash
+   node get-token.js
+   ```
+   *This script registers a user, logs them in, and saves the token to `token.txt`.*
+
+2. **Run Load Test**:
+   ```bash
+   node load-test.js
+   ```
+   *This uses `autocannon` to fire requests at `POST /tasks`. It automatically reads the token from `token.txt`.*
+
+### 2. Database Inspection
+View the data created by the tests:
 ```bash
 npx prisma studio
 ```
 
+### 3. Architecture Flow Verification
+1.  **API**: Receives `POST /tasks`.
+2.  **Kafka Producer**: Pushes event to `task.ingested`.
+3.  **Ingest Consumer**:
+    *   Reads from `task.ingested`.
+    *   Batches writes to PostgreSQL (`prisma.task.createMany`).
+    *   Caches task in Redis.
+    *   Pushes event to `task.created`.
+4.  **Created Consumer**:
+    *   Reads from `task.created`.
+    *   Pushes job to RabbitMQ queue `task.notifications`.
+5.  **Notification Worker**:
+    *   Process job from RabbitMQ.
+    *   Simulates sending an email/notification (logs to console).
 
-## 🧪 Testing
+## ⚠️ Troubleshooting
 
-### Load Testing
-A load testing script is included to test the performance of the task creation endpoint.
-
-1. Ensure the server is running.
-2. Run the load test script:
-   ```bash
-   node load-test.js
-   ```
-   ```bash
-   node load-test.js
-   ```
-
-3. **Authentication Token**:
-   The `load-test.js` script uses a JWT token for authentication. If you encounter `401 Unauthorized` errors, it means the token has expired.
-   
-   To generate a fresh token:
-   ```bash
-   node get-token.js
-   ```
-   This script will:
-   1. Register a new test user.
-   2. Login to get a fresh JWT.
-   3. Save the token to `token.txt`.
-   
-   *After running this, manually update the `Authorization` header in `load-test.js` with the new token from `token.txt`.*
-
-## 📚 API Endpoints
-
-### Auth
-- `POST /auth/register` - Register a new user
-- `POST /auth/login` - Login and receive JWT
-
-### Tasks
-- `POST /tasks` - Create a task
-- `GET /tasks/:id` - Get task details
-
-### Health
-- `GET /health` - Check system health
-
-## 🏗️ Architecture Highlights
-
-- **Rate Limiting:** Protects endpoints using Redis to track request frequency.
-- **Event-Driven:** Uses Kafka for high-throughput data ingestion and RabbitMQ for reliable background task processing (e.g., notifications).
-- **Type Safety:** Full TypeScript implementation ensures robust code.
+- **"Table not found" error**:
+  - In Docker Mode: This shouldn't happen as we mistakenly fixed it. If it does, run `docker-compose restart api`.
+  - In Local Mode: Forgot to run `npx prisma db push`.
+- **Kafka Connection Errors**:
+  - Ensure the containers are healthy (`docker ps`).
+  - If running locally, ensure you are connecting to `localhost:9092`.
+- **Prisma Studio**:
+  - Run `npx prisma studio` inside the `app` folder locally to view the DB running in Docker (port 5434).
