@@ -7,7 +7,10 @@ const kafka = new Kafka({
     brokers: [process.env.KAFKA_BROKERS || 'localhost:9092']
 })
 
-export const kafkaProducer = kafka.producer();
+export const kafkaProducer = kafka.producer({
+    allowAutoTopicCreation: false,
+    transactionTimeout: 30000,
+});
 export const kafkaAdmin = kafka.admin();
 
 export async function initKafka() {
