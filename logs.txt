@@ -1,0 +1,50 @@
+Kafka topics already exist
+Kafka topics already exist
+Kafka topics already exist
+🚀 Worker 117 ready.
+Kafka topics already exist
+🚀 Worker 154 ready.
+🚀 Worker 136 ready.
+Connected to Redis
+🚀 Worker 107 ready.
+Kafka topics already exist
+🚀 Worker 110 ready.
+{"level":"ERROR","timestamp":"2026-02-23T12:32:55.388Z","logger":"kafkajs","message":"[Connection] Connection timeout","broker":"kafka:29092","clientId":"my-app"}
+{"level":"ERROR","timestamp":"2026-02-23T12:32:55.714Z","logger":"kafkajs","message":"[Connection] Connection timeout","broker":"kafka:29092","clientId":"my-app"}
+{"level":"ERROR","timestamp":"2026-02-23T12:32:55.735Z","logger":"kafkajs","message":"[Connection] Connection error: write after end","broker":"kafka:29092","clientId":"my-app","stack":"Error [ERR_STREAM_WRITE_AFTER_END]: write after end\n    at _write (node:internal/streams/writable:489:11)\n    at Writable.write (node:internal/streams/writable:510:10)\n    at Object.sendRequest (/usr/src/app/node_modules/kafkajs/src/network/connection.js:409:27)\n    at SocketRequest.send [as sendRequest] (/usr/src/app/node_modules/kafkajs/src/network/requestQueue/index.js:134:23)\n    at SocketRequest.send (/usr/src/app/node_modules/kafkajs/src/network/requestQueue/socketRequest.js:88:10)\n    at RequestQueue.sendSocketRequest (/usr/src/app/node_modules/kafkajs/src/network/requestQueue/index.js:182:19)\n    at RequestQueue.push (/usr/src/app/node_modules/kafkajs/src/network/requestQueue/index.js:162:12)\n    at /usr/src/app/node_modules/kafkajs/src/network/connection.js:404:29\n    at new Promise (<anonymous>)\n    at sendRequest (/usr/src/app/node_modules/kafkajs/src/network/connection.js:399:14)"}
+{"level":"WARN","timestamp":"2026-02-23T12:32:55.824Z","logger":"kafkajs","message":"[RequestQueue] Response without match","clientId":"my-app","broker":"kafka:29092","correlationId":1938}
+{"level":"ERROR","timestamp":"2026-02-23T12:34:11.460Z","logger":"kafkajs","message":"[Connection] Connection error: ","broker":"localhost:9092","clientId":"kafka-lag-checker","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1122:18)\n    at afterConnectMultiple (node:net:1689:7)"}
+{"level":"ERROR","timestamp":"2026-02-23T12:34:11.472Z","logger":"kafkajs","message":"[BrokerPool] Failed to connect to seed broker, trying another broker from the list: Connection error: ","retryCount":0,"retryTime":279}
+{"level":"ERROR","timestamp":"2026-02-23T12:34:11.756Z","logger":"kafkajs","message":"[Connection] Connection error: ","broker":"localhost:9092","clientId":"kafka-lag-checker","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1122:18)\n    at afterConnectMultiple (node:net:1689:7)"}
+{"level":"ERROR","timestamp":"2026-02-23T12:34:11.756Z","logger":"kafkajs","message":"[BrokerPool] Failed to connect to seed broker, trying another broker from the list: Connection error: ","retryCount":1,"retryTime":586}
+{"level":"ERROR","timestamp":"2026-02-23T12:34:12.348Z","logger":"kafkajs","message":"[Connection] Connection error: ","broker":"localhost:9092","clientId":"kafka-lag-checker","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1122:18)\n    at afterConnectMultiple (node:net:1689:7)"}
+{"level":"ERROR","timestamp":"2026-02-23T12:34:12.351Z","logger":"kafkajs","message":"[BrokerPool] Failed to connect to seed broker, trying another broker from the list: Connection error: ","retryCount":2,"retryTime":1122}
+{"level":"ERROR","timestamp":"2026-02-23T12:34:13.487Z","logger":"kafkajs","message":"[Connection] Connection error: ","broker":"localhost:9092","clientId":"kafka-lag-checker","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1122:18)\n    at afterConnectMultiple (node:net:1689:7)"}
+{"level":"ERROR","timestamp":"2026-02-23T12:34:13.493Z","logger":"kafkajs","message":"[BrokerPool] Failed to connect to seed broker, trying another broker from the list: Connection error: ","retryCount":3,"retryTime":2514}
+{"level":"ERROR","timestamp":"2026-02-23T12:34:16.014Z","logger":"kafkajs","message":"[Connection] Connection error: ","broker":"localhost:9092","clientId":"kafka-lag-checker","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1122:18)\n    at afterConnectMultiple (node:net:1689:7)"}
+{"level":"ERROR","timestamp":"2026-02-23T12:34:16.015Z","logger":"kafkajs","message":"[BrokerPool] Failed to connect to seed broker, trying another broker from the list: Connection error: ","retryCount":4,"retryTime":4946}
+{"level":"ERROR","timestamp":"2026-02-23T12:34:20.967Z","logger":"kafkajs","message":"[Connection] Connection error: ","broker":"localhost:9092","clientId":"kafka-lag-checker","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1122:18)\n    at afterConnectMultiple (node:net:1689:7)"}
+{"level":"ERROR","timestamp":"2026-02-23T12:34:20.970Z","logger":"kafkajs","message":"[BrokerPool] Failed to connect to seed broker, trying another broker from the list: Connection error: ","retryCount":5,"retryTime":8732}
+Health check failed KafkaJSNonRetriableError
+  Caused by: KafkaJSConnectionError: Connection error: 
+    at Socket.onError (/usr/src/app/node_modules/kafkajs/src/network/connection.js:210:23)
+    ... 3 lines matching cause stack trace ...
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  name: 'KafkaJSNumberOfRetriesExceeded',
+  retriable: false,
+  helpUrl: undefined,
+  retryCount: 5,
+  retryTime: 8732,
+  [cause]: KafkaJSConnectionError: Connection error: 
+      at Socket.onError (/usr/src/app/node_modules/kafkajs/src/network/connection.js:210:23)
+      at Socket.emit (node:events:524:28)
+      at emitErrorNT (node:internal/streams/destroy:169:8)
+      at emitErrorCloseNT (node:internal/streams/destroy:128:3)
+      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+    retriable: true,
+    helpUrl: undefined,
+    broker: 'localhost:9092',
+    code: 'ECONNREFUSED',
+    [cause]: undefined
+  }
+}

@@ -2,7 +2,7 @@ import { Kafka } from "kafkajs";
 
 const kafka = new Kafka({
     clientId: "kafka-lag-checker",
-    brokers: ["localhost:9092"]
+    brokers: process.env.KAFKA_BROKERS ? process.env.KAFKA_BROKERS.split(",") : ["localhost:9092"]
 })
 
 export async function getConsumerLag(

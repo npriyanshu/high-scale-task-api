@@ -47,8 +47,8 @@ async function gracefullExit() {
 if (cluster.isPrimary) {
   // On a 2-core VM, 2 workers is usually best. 
   // If your VM is shared, sometimes 4 workers can help hide I/O wait.
-  const numCPUs = process.env.WEB_CONCURRENCY 
-    ? parseInt(process.env.WEB_CONCURRENCY) 
+  const numCPUs = process.env.WEB_CONCURRENCY
+    ? parseInt(process.env.WEB_CONCURRENCY)
     : os.cpus().length;
 
   console.log(`[Primary] Spinning up ${numCPUs} workers for 10k connection stress test...`);
@@ -73,7 +73,7 @@ if (cluster.isPrimary) {
       redis.ping() // Ensure redis is alive
     ]);
 
-    server = app.listen(PORT, "0.0.0.0", () => {
+    server = app.listen(PORT, "0.0.0.0", 10000, () => {
       // Keep console logs minimal during load tests to avoid blocking the event loop
       if (process.env.NODE_ENV !== 'production') {
         console.log(`🚀 Worker ${process.pid} ready.`);
@@ -81,7 +81,7 @@ if (cluster.isPrimary) {
     });
 
     // Set server timeout higher to handle the massive queue
-    server.keepAliveTimeout = 65000; 
+    server.keepAliveTimeout = 65000;
     server.headersTimeout = 66000;
 
     process.on("SIGINT", gracefullExit);
