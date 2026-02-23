@@ -1,9 +1,10 @@
-import cluster from "cluster";
-import os from "os";
+import cluster from "node:cluster";
+import os from "node:os";
 import "dotenv/config";
 import express from "express";
 import taskRoutes from "./modules/task/task.routes";
 import healthRoutes from "./routes/health";
+import authRoutes from "./modules/auth/auth.routes";
 
 import { kafkaProducer, initKafka } from "./kafka";
 import { shutdown } from "./utils/shutdown";
@@ -11,13 +12,14 @@ import { Server } from "http";
 import { prisma } from "./prisma";
 import { redis } from "./config/redis";
 
-import authRoutes from "./modules/auth/auth.routes";
-
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
 // --- SHARED APP LOGIC ---
 const app = express();
 app.use(express.json());
+
+// Disable X-Powered-By header to save a few bytes per request
+app.disable('x-powered-by');
 
 app.use("/tasks", taskRoutes);
 app.use("/health", healthRoutes);
@@ -25,100 +27,66 @@ app.use("/auth", authRoutes);
 
 let server: Server;
 
-/**
- * Cleanup function for workers to close all infrastructure connections
- */
 async function gracefullExit() {
-  console.log(`\n[Worker ${process.pid}] Starting graceful exit...`);
-
   if (server) {
-    await shutdown("Express Server", async () => {
-      return new Promise((resolve, reject) => {
-        server.close((err) => {
-          if (err) return reject(err);
-          resolve();
-        });
-      });
-    });
+    server.close();
   }
-
-  // Close infrastructure connections
   try {
-    await shutdown("Kafka Producer", () => kafkaProducer.disconnect());
-    await shutdown("Prisma", () => prisma.$disconnect());
-    await shutdown("Redis", async () => {
-      // Use quit() for a clean close, disconnect() as fallback
-      await redis.quit().catch(() => redis.disconnect());
-    });
-  } catch (err) {
-    console.error(`[Worker ${process.pid}] Error during shutdown:`, err);
+    // Attempt clean disconnects but don't hang if they fail
+    await Promise.allSettled([
+      kafkaProducer.disconnect(),
+      prisma.$disconnect(),
+      redis.quit()
+    ]);
+  } finally {
+    process.exit(0);
   }
-
-  console.log(`[Worker ${process.pid}] Shutdown complete.`);
-  process.exit(0);
 }
 
 // --- CLUSTER LOGIC ---
 if (cluster.isPrimary) {
-  // Respect WEB_CONCURRENCY env var (common in Docker/Heroku) or fallback to CPU count
+  // On a 2-core VM, 2 workers is usually best. 
+  // If your VM is shared, sometimes 4 workers can help hide I/O wait.
   const numCPUs = process.env.WEB_CONCURRENCY 
     ? parseInt(process.env.WEB_CONCURRENCY) 
     : os.cpus().length;
 
-  console.log(`[Primary ${process.pid}] Master process starting...`);
-  console.log(`[Primary ${process.pid}] Forking ${numCPUs} worker processes...`);
+  console.log(`[Primary] Spinning up ${numCPUs} workers for 10k connection stress test...`);
 
-  // Fork workers
   for (let i = 0; i < numCPUs; i++) {
     cluster.fork();
   }
 
-  // Handle worker crashes
-  cluster.on("exit", (worker, code, signal) => {
-    if (code !== 0 && !worker.exitedAfterDisconnect) {
-      console.error(`[Primary] Worker ${worker.process.pid} crashed (code: ${code}, signal: ${signal}). Forking replacement...`);
-      cluster.fork();
-    }
-  });
-
-  // Forward signals to workers for graceful exit
-  const signals: NodeJS.Signals[] = ["SIGINT", "SIGTERM"];
-  signals.forEach((signal) => {
-    process.on(signal, () => {
-      console.log(`[Primary] Received ${signal}. Signaling workers...`);
-      for (const id in cluster.workers) {
-        cluster.workers[id]?.kill(signal);
-      }
-    });
+  cluster.on("exit", (worker) => {
+    console.log(`[Primary] Worker ${worker.process.pid} died. Respawning...`);
+    cluster.fork();
   });
 
 } else {
   // --- WORKER LOGIC ---
   async function start() {
-    console.log(`[Worker ${process.pid}] Initializing resources...`);
+    // OPTIMIZATION: Connect to infra IN PARALLEL before starting the server
+    await Promise.all([
+      initKafka(),
+      kafkaProducer.connect(),
+      prisma.$connect(),
+      redis.ping() // Ensure redis is alive
+    ]);
 
-    // 1. Initialize and Connect Kafka
-    await initKafka();
-    await kafkaProducer.connect();
-    
-    // 2. Start Express Server
-    server = app.listen(PORT, () => {
-      console.log(`🚀 [Worker ${process.pid}] HTTP Server ready on http://localhost:${PORT}`);
+    server = app.listen(PORT, "0.0.0.0", () => {
+      // Keep console logs minimal during load tests to avoid blocking the event loop
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`🚀 Worker ${process.pid} ready.`);
+      }
     });
 
-    // Handle signals at worker level
+    // Set server timeout higher to handle the massive queue
+    server.keepAliveTimeout = 65000; 
+    server.headersTimeout = 66000;
+
     process.on("SIGINT", gracefullExit);
     process.on("SIGTERM", gracefullExit);
-
-    // Safety: Handle unhandled promise rejections
-    process.on("unhandledRejection", (reason, promise) => {
-      console.error(`[Worker ${process.pid}] Unhandled Rejection at:`, promise, "reason:", reason);
-      gracefullExit();
-    });
   }
 
-  start().catch((err) => {
-    console.error(`[Worker ${process.pid}] Critical failure during startup:`, err);
-    process.exit(1);
-  });
+  start().catch(() => process.exit(1));
 }
