@@ -14,7 +14,7 @@ const { Pool } = pg;
  */
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 5,                     // demo-safe, predictable
+  max: 10,                     // demo-safe, predictable
   connectionTimeoutMillis: 10_000,
 });
 
