@@ -74,7 +74,7 @@ Runs the infrastructure (DB, Queues) in Docker, but runs the Node.js application
 
 1. **Start Infrastructure**:
    ```bash
-   docker-compose -f docker-compose-old.yml up -d
+   docker compose -f docker-compose-old.yml up -d
    ```
 
 2. **Setup Environment Variables**:
@@ -91,7 +91,6 @@ Runs the infrastructure (DB, Queues) in Docker, but runs the Node.js application
    RABBITMQ_URL="amqp://guest:guest@localhost:5672"
    JWT_SECRET="your_super_secret_key"
    ```
-
    npm install
    ```
 
