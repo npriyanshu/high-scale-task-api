@@ -2,7 +2,22 @@
 
 const autocannon = require('autocannon');
 
+const fs = require('fs');
+const path = require('path');
+
 const url = 'http://localhost:3000/tasks';
+
+// Load token from token.txt if it exists
+let token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJsb2FkdGVzdEBleGFtcGxlLmNvbSIsImlhdCI6MTc3MTgzMDk0OSwiZXhwI6MTgwMzM4ODU0OX0.fBKehGy87O44OUyWTT6NKXPFKCbIA9MtV6XEpbaP2-I';
+try {
+  const tokenPath = path.join(__dirname, 'token.txt');
+  if (fs.existsSync(tokenPath)) {
+    token = fs.readFileSync(tokenPath, 'utf8').trim();
+    console.log('✅ Loaded fresh token from token.txt');
+  }
+} catch (err) {
+  console.warn('⚠️ Could not read token.txt, using fallback token');
+}
 
 const instance = autocannon(
   {
@@ -13,7 +28,7 @@ const instance = autocannon(
     duration: 10,         // 10 second test
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJsb2FkdGVzdEBleGFtcGxlLmNvbSIsImlhdCI6MTc3MTgzMDk0OSwiZXhwIjoxODAzMzg4NTQ5fQ.fBKehGy87O44OUyWTT6NKXPFKCbIA9MtV6XEpbaP2-I'
+      'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify({
       title: 'load-test-task',

@@ -156,5 +156,8 @@ npx prisma studio
 - **Kafka Connection Errors**:
   - Ensure the containers are healthy (`docker ps`).
   - If running locally, ensure you are connecting to `localhost:9092`.
+- **401 Unauthorized during load testing**:
+  - The JWT token in `token.txt` (or hardcoded in `load-test.js`) has likely expired.
+  - Run `node get-token.js` to generate a fresh token. The load test script will automatically use it.
 - **Prisma Studio**:
   - Run `npx prisma studio` inside the `app` folder locally to view the DB running in Docker (port 5434).
